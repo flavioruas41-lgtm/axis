@@ -1,0 +1,1 @@
+Leia AXIS-Termux-Guia.md. O servidor serve o build PWA da pasta dist/; rode node serve-termux.mjs no Termux e abra http://127.0.0.1:3000 no Chrome. A chave Gemini é opcional, deve ser informada no ambiente do Termux e nunca é incluída neste ZIP.

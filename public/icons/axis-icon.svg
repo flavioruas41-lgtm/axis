@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Símbolo AXIS: um caminho que se abre sobre as páginas de um caderno">
+  <rect width="512" height="512" rx="112" fill="#171c17"/>
+  <path d="M112 149c50-16 98 1 144 31v196c-48-30-94-45-144-31V149Z" fill="#20291f" stroke="#788765" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M400 149c-50-16-98 1-144 31v196c48-30 94-45 144-31V149Z" fill="#20291f" stroke="#788765" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M256 337V183m-24 25 24-25 24 25" fill="none" stroke="#c5d18e" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="256" cy="171" r="9" fill="#e7e3d8"/>
+</svg>

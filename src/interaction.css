@@ -1,0 +1,61 @@
+/* Microinterações do AXIS: pequenas confirmações, nunca movimento decorativo contínuo. */
+@keyframes axis-page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes axis-check-enter {
+  0% { transform: scale(.82); }
+  68% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+.page-transition {
+  animation: axis-page-enter 210ms cubic-bezier(.2, .72, .25, 1) both;
+}
+
+.button:active:not(:disabled),
+.icon-button:active:not(:disabled),
+.nav-item:active:not(:disabled),
+.mobile-tab:active:not(:disabled),
+.task-check:active:not(:disabled),
+.habit-toggle:active:not(:disabled),
+.habit-mini:active:not(:disabled),
+.quick-action-card:active:not(:disabled) {
+  transform: scale(.975);
+}
+
+.task-check.checked,
+.habit-mini.done .habit-mini-check,
+.habit-toggle.checked {
+  animation: axis-check-enter 180ms cubic-bezier(.2, .72, .25, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .stat-tile,
+  .entity-card,
+  .project-card,
+  .study-row,
+  .money-row,
+  .journal-card {
+    transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
+  }
+
+  .entity-card:hover,
+  .project-card:hover,
+  .journal-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(197, 209, 142, .27);
+  }
+
+  .stat-tile:hover {
+    border-color: rgba(197, 209, 142, .24);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-transition { animation: none !important; }
+  .task-check.checked,
+  .habit-mini.done .habit-mini-check,
+  .habit-toggle.checked { animation: none !important; }
+}
