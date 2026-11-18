@@ -16,12 +16,12 @@ const SYSTEM_INSTRUCTION = [
 
 const ERROR_MESSAGES = {
   missingKey: 'O chat ainda não foi configurado no servidor. Tente novamente mais tarde.',
-  network: 'Não foi possível conectar ao Gemini. Verifique a conexão e tente novamente.',
-  timeout: 'O Gemini demorou para responder. Tente novamente em instantes.',
+  network: 'Não foi possível conectar ao Gemini. Verifique a conexão e tente novamente (AXIS-GEMINI-NETWORK).',
+  timeout: 'O Gemini demorou para responder. Tente novamente em instantes (AXIS-GEMINI-TIMEOUT).',
   quota: 'A cota gratuita do Gemini foi atingida ou está temporariamente ocupada. Aguarde e tente novamente.',
   credentials: 'A chave Gemini configurada no servidor foi recusada. Verifique a configuração da chave.',
-  provider: 'O Gemini não conseguiu responder agora. Tente reformular a mensagem ou tente novamente depois.',
-  empty: 'O Gemini retornou uma resposta vazia. Tente reformular a mensagem.',
+  provider: 'O Gemini retornou uma resposta em formato inesperado (AXIS-GEMINI-INVALID-RESPONSE).',
+  empty: 'O Gemini retornou uma resposta sem texto (AXIS-GEMINI-EMPTY-RESPONSE).',
 };
 
 export function validateChatMessages(value) {
@@ -128,10 +128,29 @@ export function extractGeminiText(interaction) {
 }
 
 function publicProviderError(status) {
-  if (status === 401 || status === 403) return { status: 503, error: ERROR_MESSAGES.credentials };
-  if (status === 429) return { status: 429, error: ERROR_MESSAGES.quota };
-  if (status === 400 || status === 422) return { status: 422, error: ERROR_MESSAGES.provider };
-  return { status: 502, error: ERROR_MESSAGES.provider };
+  const diagnosticCode = `AXIS-GEMINI-HTTP-${status}`;
+  if (status === 401) {
+    return { status: 503, error: `${ERROR_MESSAGES.credentials} (HTTP 401; ${diagnosticCode})` };
+  }
+  if (status === 403) {
+    return {
+      status: 503,
+      error: `O Google negou acesso à Gemini API (HTTP 403; ${diagnosticCode}). Confira o estado da chave e a elegibilidade do projeto para a faixa gratuita.`,
+    };
+  }
+  if (status === 429) {
+    return { status: 429, error: `${ERROR_MESSAGES.quota} (HTTP 429; ${diagnosticCode})` };
+  }
+  if (status === 400 || status === 422) {
+    return { status: 422, error: `O Google rejeitou a solicitação Gemini (HTTP ${status}; ${diagnosticCode}).` };
+  }
+  if (status === 404) {
+    return { status: 502, error: `O Google não encontrou o endpoint ou modelo solicitado (HTTP 404; ${diagnosticCode}).` };
+  }
+  if (status >= 500) {
+    return { status: 502, error: `O Gemini teve uma falha temporária (HTTP ${status}; ${diagnosticCode}).` };
+  }
+  return { status: 502, error: `O Gemini retornou um erro HTTP ${status} (${diagnosticCode}).` };
 }
 
 export async function generateGeminiReply(messages, {
@@ -171,22 +190,45 @@ export async function generateGeminiReply(messages, {
       body: JSON.stringify(buildGeminiInteraction(messages)),
       ...(requestSignal ? { signal: requestSignal } : {}),
     });
-  } catch {
+  } catch (error) {
     if (signal?.aborted) return { ok: false, status: 499, error: 'O envio foi cancelado.' };
-    if (timeoutSignal?.aborted) return { ok: false, status: 504, error: ERROR_MESSAGES.timeout };
+    if (timeoutSignal?.aborted) {
+      console.warn('[AXIS Gemini] timeout', JSON.stringify({ timeoutMs: 45_000 }));
+      return { ok: false, status: 504, error: ERROR_MESSAGES.timeout };
+    }
+    const errorName = error instanceof Error && /^[A-Za-z]+Error$/.test(error.name) ? error.name : 'NetworkError';
+    console.warn('[AXIS Gemini] network_failure', JSON.stringify({ errorName }));
     return { ok: false, status: 502, error: ERROR_MESSAGES.network };
   }
 
-  if (!response.ok) return { ok: false, ...publicProviderError(response.status) };
+  if (!response.ok) {
+    let providerCode;
+    try {
+      const details = await response.clone().json();
+      const candidate = details?.error?.status;
+      if (typeof candidate === 'string' && /^[A-Z0-9_]{1,48}$/.test(candidate)) providerCode = candidate;
+    } catch {
+      // Keep provider details private; the HTTP status is enough for diagnosis.
+    }
+    console.warn('[AXIS Gemini] upstream_http_error', JSON.stringify({
+      httpStatus: response.status,
+      ...(providerCode ? { providerCode } : {}),
+    }));
+    return { ok: false, ...publicProviderError(response.status) };
+  }
 
   let interaction;
   try {
     interaction = await response.json();
   } catch {
+    console.warn('[AXIS Gemini] invalid_json_response', JSON.stringify({ httpStatus: response.status }));
     return { ok: false, status: 502, error: ERROR_MESSAGES.provider };
   }
 
   const reply = extractGeminiText(interaction);
-  if (!reply) return { ok: false, status: 502, error: ERROR_MESSAGES.empty };
+  if (!reply) {
+    console.warn('[AXIS Gemini] empty_text_response', JSON.stringify({ httpStatus: response.status }));
+    return { ok: false, status: 502, error: ERROR_MESSAGES.empty };
+  }
   return { ok: true, status: 200, reply };
 }

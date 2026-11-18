@@ -30,6 +30,8 @@ Essas verificações não enviam mensagens reais ao Gemini. Para testar o servi�
 
 O endpoint é público e não exige conta AXIS. Os limitadores em memória são locais à instância e são uma barreira oportunista, não uma autenticação nem um limite global garantido. Uma chamada automatizada ainda pode consumir a cota do projeto Google. O AXIS não configura faturamento e não faz fallback para um serviço pago.
 
+Em falhas do provedor, rede ou formato de resposta, o chat mostra um código `AXIS-GEMINI-*` para facilitar o diagnóstico. Os logs registram somente metadados técnicos, como status HTTP, categoria ou código seguro do Google; não registram a mensagem enviada, o corpo da resposta do provedor nem a chave.
+
 A Vercel e o Gemini são provedores distintos: esta configuração muda onde o frontend e a Function são servidos; não altera a chave, os limites ou as políticas de dados do Google. A migração pode evitar o caminho do gateway Manus, mas o ZIP não garante que todo erro de publicação ou de provedor desaparecerá.
 
 Documentação: [Vite na Vercel](https://vercel.com/docs/frameworks/frontend/vite), [Funções Node.js](https://vercel.com/docs/functions/runtimes/node-js), [variáveis de ambiente](https://vercel.com/docs/environment-variables) e [limites de duração](https://vercel.com/docs/functions/limitations).

@@ -167,6 +167,30 @@ test('HTTP 429 do Gemini vira orientação de cota e não faz fallback', async (
   });
 });
 
+test('erro upstream mostra o status seguro sem expor a mensagem bruta do Google', async () => {
+  const privateProviderText = 'DETAIL_MUST_NOT_REACH_THE_CHAT';
+  await withChatServer({
+    getApiKey: () => 'test-only-not-a-real-key',
+    fetchImpl: async () => new Response(JSON.stringify({
+      error: { status: 'INVALID_ARGUMENT', message: privateProviderText },
+    }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    }),
+  }, async (origin) => {
+    const response = await fetch(`${origin}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: validMessages }),
+    });
+    const data = await response.json();
+
+    assert.equal(response.status, 422);
+    assert.match(data.error, /HTTP 400; AXIS-GEMINI-HTTP-400/);
+    assert.doesNotMatch(data.error, new RegExp(privateProviderText));
+  });
+});
+
 test('limiter process-local limita por IP, agregado por minuto e volume diário', () => {
   const limiter = createRateLimiter({
     windowMs: 60_000,

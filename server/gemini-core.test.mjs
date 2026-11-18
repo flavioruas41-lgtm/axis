@@ -74,6 +74,63 @@ test('usa uma única chamada Gemini, store:false e não faz fallback ao receber 
   assert.equal(sentHeaders['x-goog-api-key'], 'test-key-only');
   assert.equal(result.status, 429);
   assert.match(result.error, /cota gratuita/i);
+  assert.match(result.error, /AXIS-GEMINI-HTTP-429/);
+});
+
+test('retorna e registra só status/código do Gemini, nunca a mensagem ou chave', async () => {
+  const cases = [
+    [400, /AXIS-GEMINI-HTTP-400/],
+    [401, /AXIS-GEMINI-HTTP-401/],
+    [403, /AXIS-GEMINI-HTTP-403.*elegibilidade do projeto/i],
+    [404, /AXIS-GEMINI-HTTP-404/],
+    [503, /AXIS-GEMINI-HTTP-503/],
+  ];
+  const logs = [];
+  const originalWarn = console.warn;
+  console.warn = (...args) => logs.push(args.join(' '));
+
+  try {
+    for (const [httpStatus, expectedMessage] of cases) {
+      const result = await generateGeminiReply(messages, {
+        apiKey: 'test-key-must-not-be-logged',
+        fetchImpl: async () => new Response(JSON.stringify({
+          error: { status: 'INVALID_ARGUMENT', message: 'PRIVATE_PROMPT_MUST_NOT_APPEAR' },
+        }), {
+          status: httpStatus,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      });
+
+      assert.equal(result.ok, false);
+      assert.match(result.error, expectedMessage);
+      assert.doesNotMatch(result.error, /PRIVATE_PROMPT_MUST_NOT_APPEAR|test-key-must-not-be-logged/);
+    }
+  } finally {
+    console.warn = originalWarn;
+  }
+
+  const allLogs = logs.join('\n');
+  assert.match(allLogs, /upstream_http_error/);
+  assert.match(allLogs, /"httpStatus":400/);
+  assert.match(allLogs, /"providerCode":"INVALID_ARGUMENT"/);
+  assert.doesNotMatch(allLogs, /PRIVATE_PROMPT_MUST_NOT_APPEAR|test-key-must-not-be-logged/);
+});
+
+test('classifica JSON inválido e resposta sem texto com códigos distintos', async () => {
+  const invalidJson = await generateGeminiReply(messages, {
+    apiKey: 'test-key-only',
+    fetchImpl: async () => new Response('PRIVATE_RAW_RESPONSE', { status: 200 }),
+  });
+  assert.equal(invalidJson.ok, false);
+  assert.match(invalidJson.error, /AXIS-GEMINI-INVALID-RESPONSE/);
+  assert.doesNotMatch(invalidJson.error, /PRIVATE_RAW_RESPONSE/);
+
+  const emptyText = await generateGeminiReply(messages, {
+    apiKey: 'test-key-only',
+    fetchImpl: async () => new Response(JSON.stringify({ output_text: '' }), { status: 200 }),
+  });
+  assert.equal(emptyText.ok, false);
+  assert.match(emptyText.error, /AXIS-GEMINI-EMPTY-RESPONSE/);
 });
 
 test('converte a resposta de texto do endpoint em um objeto mínimo para a interface', async () => {
