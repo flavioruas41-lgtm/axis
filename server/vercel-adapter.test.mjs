@@ -74,7 +74,7 @@ test('adapta o JSON da Vercel, usa Chat Completions Groq e mantém resposta no-s
     assert.match(response.headers.get('cache-control') || '', /no-store/);
     assert.equal(data.reply, 'Resposta local simulada.');
     assert.equal(calls.length, 1);
-    assert.equal(calls[0].model, 'llama-3.1-8b-instant');
+    assert.equal(calls[0].model, 'openai/gpt-oss-20b');
     assert.equal(Object.hasOwn(calls[0], 'store'), false);
     assert.equal(calls[0].messages[1].content, validMessages[0].content);
     assert.equal(Object.hasOwn(calls[0], 'tasks'), false);

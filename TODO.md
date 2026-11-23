@@ -46,12 +46,12 @@
 
 ## Migração do chat para Groq
 
-- [x] O chat opcional usa `llama-3.1-8b-instant` pela API Chat Completions da Groq, sem fallback para serviço pago; erro 429 interrompe a chamada com orientação de limite.
+- [x] O chat opcional usa `openai/gpt-oss-20b` pela API Chat Completions da Groq, sem fallback para serviço pago; erro 429 interrompe a chamada com orientação de limite.
 - [x] A interface informa que o texto e o histórico curto são enviados à Groq e que a Groq declara não reter pedidos por padrão, mas pode armazená-los por até 30 dias em circunstâncias limitadas. Não se afirma `store:false` nem ZDR ativo.
 - [x] O backend transmite somente o histórico curto textual; tarefas, objetivos, projetos, hábitos, estudos, Diário, Finanças, backups e outros registros locais não são anexados ou consultados.
 - [x] A chave `GROQ_API_KEY` é lida somente no servidor/ambiente do Termux; nunca vai ao front-end, bundle, logs, Git ou ZIP.
 - [x] O endpoint mantém validação de origem, métodos, payload, limites de tamanho/histórico/tempo, cache `no-store`, erros minimizados e limites best-effort por IP, janela e dia.
 - [x] Testes automatizados com mocks (21/21), build TypeScript e inspeção de bundle concluídos sem chamadas reais à Groq; a bundle não contém `GROQ_API_KEY` nem `process.env`.
 - [x] ZIP Termux recriado com a interface Groq e sem `.env`, chave, `node_modules` ou referências ao provedor anterior.
-- [ ] Confirmar que a organização Groq vinculada à chave está no nível gratuito e sem faturamento habilitado; confirmar os limites efetivos da conta.
-- [ ] Configurar `GROQ_API_KEY` como segredo server-side na Vercel para Preview e Production. Não publicar até essas confirmações; o usuário não deve compartilhar a chave no chat.
+- [x] Usuário confirmou organização Groq Free sem faturamento e variável `GROQ_API_KEY` configurada diretamente na Vercel; chave não foi compartilhada no chat.
+- [x] `GROQ_API_KEY` configurada como segredo server-side em Preview e Production; código publicado sem expor a chave.

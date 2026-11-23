@@ -1,12 +1,12 @@
 # AXIS — pacote para Vercel com Groq
 
-Este pacote adiciona a Function Node.js `api/chat.js` à versão PWA do AXIS. Ela encaminha os pedidos para o endpoint compartilhado do projeto e para a API Chat Completions da Groq, usando `llama-3.1-8b-instant`. O pacote não cria nem publica um projeto Vercel por si só.
+Este pacote adiciona a Function Node.js `api/chat.js` à versão PWA do AXIS. Ela encaminha os pedidos para o endpoint compartilhado do projeto e para a API Chat Completions da Groq, usando `openai/gpt-oss-20b`. O pacote não cria nem publica um projeto Vercel por si só.
 
 ## Antes de publicar
 
 O AXIS guarda tarefas, Diário, objetivos, finanças e outros registros no `localStorage` do navegador. Esses dados pertencem à origem atual e não aparecem automaticamente em um domínio Vercel. Antes de trocar de endereço, exporte um backup em **Minha rotina → Cópia de segurança**. Depois, importe esse arquivo manualmente no novo domínio. A conversa do chat não é incluída no backup.
 
-Para manter o uso sem cobrança, confirme primeiro no console da Groq que a chave pertence a uma organização no nível gratuito, e não habilite faturamento nem cadastre um método de pagamento para esta integração. Se a conta pedir ativação de plano pago para emitir a chave ou usar o modelo, interrompa a configuração. O código não tem fallback pago, mas não consegue substituir as configurações de faturamento da conta do provedor.
+Para manter o uso sem cobrança, confirme primeiro no console da Groq que a chave pertence a uma organização no nível gratuito, e não habilite faturamento nem cadastre um método de pagamento para esta integração. Se a conta pedir ativação de plano pago para emitir a chave ou usar o modelo, interrompa a configuração. O código não tem fallback pago, mas não consegue substituir as configurações de faturamento da conta do provedor. A Groq publica preços por token para uso faturado deste modelo; a configuração AXIS deve permanecer numa organização gratuita sem faturamento.
 
 ## Configuração da Vercel
 
@@ -36,4 +36,4 @@ Em falhas do provedor, rede ou formato de resposta, o chat mostra um código `AX
 
 A Vercel e a Groq são provedores distintos: esta configuração muda onde o frontend e a Function são servidos; não altera a chave, os limites ou as políticas de dados da Groq. Consulte os limites efetivos da sua organização antes de ativar o chat.
 
-Documentação: [Vite na Vercel](https://vercel.com/docs/frameworks/frontend/vite), [Funções Node.js](https://vercel.com/docs/functions/runtimes/node-js), [variáveis de ambiente](https://vercel.com/docs/environment-variables), [modelo llama-3.1-8b-instant](https://console.groq.com/docs/model/llama-3.1-8b-instant), [limites Groq](https://console.groq.com/docs/rate-limits) e [dados Groq](https://console.groq.com/docs/your-data).
+Documentação: [Vite na Vercel](https://vercel.com/docs/frameworks/frontend/vite), [Funções Node.js](https://vercel.com/docs/functions/runtimes/node-js), [variáveis de ambiente](https://vercel.com/docs/environment-variables), [modelo openai/gpt-oss-20b](https://console.groq.com/docs/model/openai/gpt-oss-20b), [limites Groq](https://console.groq.com/docs/rate-limits) e [dados Groq](https://console.groq.com/docs/your-data).

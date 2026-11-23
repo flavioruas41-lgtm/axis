@@ -207,7 +207,7 @@ export default function ChatAssistant() {
                 <div className="axis-chat-heading">
                   <p className="axis-chat-kicker">AXIS · CONVERSA</p>
                   <h2 id="axis-chat-title">Assistente</h2>
-                  <p id="axis-chat-subtitle" className="axis-chat-model">llama-3.1-8b-instant <span aria-hidden="true">·</span> limites gratuitos da Groq</p>
+                  <p id="axis-chat-subtitle" className="axis-chat-model">openai/gpt-oss-20b <span aria-hidden="true">·</span> limites gratuitos da Groq</p>
                 </div>
               </div>
               <div className="axis-chat-actions">

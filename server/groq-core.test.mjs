@@ -25,11 +25,12 @@ test('valida somente o histórico textual curto do chat', () => {
 
 test('monta Chat Completions Groq com a conversa, sem estado ou registros do AXIS', () => {
   const body = buildGroqChatCompletion(messages);
-  assert.equal(body.model, 'llama-3.1-8b-instant');
+  assert.equal(body.model, 'openai/gpt-oss-20b');
   assert.equal(body.model, GROQ_MODEL);
   assert.deepEqual(body.messages.map((message) => message.role), ['system', 'user', 'assistant', 'user']);
   assert.equal(body.messages[1].content, 'Ajude a organizar meu dia.');
   assert.equal(body.max_completion_tokens, 480);
+  assert.equal(body.reasoning_effort, 'low');
   assert.equal(Object.hasOwn(body, 'store'), false);
   assert.equal(Object.hasOwn(body, 'tasks'), false);
   assert.equal(Object.hasOwn(body, 'journal'), false);

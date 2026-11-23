@@ -1,4 +1,4 @@
-export const GROQ_MODEL = 'llama-3.1-8b-instant';
+export const GROQ_MODEL = 'openai/gpt-oss-20b';
 export const MAX_HISTORY_MESSAGES = 12;
 export const MAX_MESSAGE_CHARACTERS = 1600;
 export const MAX_HISTORY_CHARACTERS = MAX_HISTORY_MESSAGES * MAX_MESSAGE_CHARACTERS;
@@ -90,6 +90,7 @@ export function buildGroqChatCompletion(messages) {
       ...messages.map(({ role, content }) => ({ role, content })),
     ],
     max_completion_tokens: 480,
+    reasoning_effort: 'low',
     temperature: 0.4,
   };
 }

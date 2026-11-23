@@ -47,7 +47,7 @@ test('POST válido envia apenas histórico textual à Groq e responde sem cache'
     assert.match(response.headers.get('cache-control') || '', /no-store/);
     assert.equal(data.reply, 'Separe primeiro o que tem horário marcado.');
     assert.equal(calls.length, 1);
-    assert.equal(calls[0].body.model, 'llama-3.1-8b-instant');
+    assert.equal(calls[0].body.model, 'openai/gpt-oss-20b');
     assert.equal(Object.hasOwn(calls[0].body, 'store'), false);
     assert.equal(calls[0].body.messages[0].role, 'system');
     assert.deepEqual(calls[0].body.messages[1], validMessages[0]);
@@ -147,7 +147,7 @@ test('HTTP 429 da Groq vira orientação de limite e não faz fallback pago', as
     getApiKey: () => 'test-only-not-a-real-key',
     fetchImpl: async (_url, options) => {
       calls += 1;
-      assert.equal(JSON.parse(options.body).model, 'llama-3.1-8b-instant');
+      assert.equal(JSON.parse(options.body).model, 'openai/gpt-oss-20b');
       assert.equal(Object.hasOwn(JSON.parse(options.body), 'store'), false);
       return new Response(JSON.stringify({ error: { code: 429 } }), {
         status: 429,

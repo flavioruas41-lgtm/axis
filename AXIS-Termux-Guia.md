@@ -69,6 +69,6 @@ Os lembretes são verificados enquanto o AXIS permanece aberto. Como esta versã
 - [Termux — instalação e informações do aplicativo](https://github.com/termux/termux-app)
 - [Termux — pacote Node.js](https://wiki.termux.com/wiki/Node.js)
 - [Termux no F-Droid](https://f-droid.org/en/packages/com.termux/)
-- [Groq — modelo llama-3.1-8b-instant](https://console.groq.com/docs/model/llama-3.1-8b-instant)
+- [Groq — modelo openai/gpt-oss-20b](https://console.groq.com/docs/model/openai/gpt-oss-20b)
 - [Groq — limites de uso](https://console.groq.com/docs/rate-limits)
 - [Groq — privacidade e retenção](https://console.groq.com/docs/your-data)
