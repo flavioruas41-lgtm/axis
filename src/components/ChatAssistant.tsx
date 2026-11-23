@@ -14,7 +14,7 @@ type ChatResponse = {
 
 const MAX_MESSAGE_LENGTH = 1600;
 const MAX_CONTEXT_MESSAGES = 12;
-const PRIVACY_NOTICE = 'Para gerar respostas, o texto do chat é enviado à Groq. A Groq informa que não retém pedidos de inferência por padrão, mas pode armazená-los temporariamente por até 30 dias em situações limitadas de confiabilidade ou investigação de abuso. O AXIS não envia tarefas, objetivos, Diário, finanças ou outros dados locais; não envie informações sensíveis. Use somente uma conta Groq Free, sem faturamento habilitado: o AXIS não faz fallback pago.';
+const PRIVACY_NOTICE = 'Ao enviar, o texto da conversa é processado por um serviço externo de IA. O AXIS não envia seus registros pessoais junto com a mensagem. O serviço informa que não retém pedidos por padrão, mas pode armazená-los temporariamente por até 30 dias em situações limitadas de segurança. Evite informações sensíveis; a conversa desta sessão é apagada ao recarregar a página.';
 const FOCUSABLE_SELECTOR = [
   'a[href]',
   'button:not([disabled])',
@@ -207,7 +207,7 @@ export default function ChatAssistant() {
                 <div className="axis-chat-heading">
                   <p className="axis-chat-kicker">AXIS · CONVERSA</p>
                   <h2 id="axis-chat-title">Assistente</h2>
-                  <p id="axis-chat-subtitle" className="axis-chat-model">openai/gpt-oss-20b <span aria-hidden="true">·</span> limites gratuitos da Groq</p>
+                  <p id="axis-chat-subtitle" className="axis-chat-subtitle">Pergunte o que quiser</p>
                 </div>
               </div>
               <div className="axis-chat-actions">
@@ -238,7 +238,7 @@ export default function ChatAssistant() {
                 <div className="axis-chat-welcome">
                   <span className="axis-chat-welcome-icon"><MessageCircle aria-hidden="true" size={20} /></span>
                   <p className="axis-chat-welcome-title">Uma conversa, sem atalhos.</p>
-                  <p className="axis-chat-welcome-copy">Faça uma pergunta quando estiver pronto. Nada do seu conteúdo do AXIS é usado como contexto.</p>
+                  <p className="axis-chat-welcome-copy">Faça uma pergunta quando estiver pronto. Seus registros do AXIS não são enviados como contexto.</p>
                 </div>
               ) : messages.map((message, index) => (
                 <article className={`axis-chat-message axis-chat-message-${message.role}`} key={`${index}-${message.role}`}>

@@ -19,7 +19,7 @@ export const NAV_ITEMS: { id: AxisView; label: string; icon: typeof House; group
 ];
 
 export function Brand({ compact = false }: { compact?: boolean }) {
-  const brandImage = '/manus-storage/async-images/ET6DkIprQc1MTFi7dG9MvI/image-1.webp';
+  const brandImage = '/images/axis-brand-symbol.webp';
   return (
     <div className={`brand${compact ? ' brand-compact' : ''}`}>
       <img className="brand-symbol" src={brandImage} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = '/icons/axis-icon.svg'; }} />
@@ -53,7 +53,7 @@ export function Sidebar({ active, onNavigate }: { active: AxisView; onNavigate: 
       <Brand />
       <NavLinks active={active} onNavigate={onNavigate} />
       <div className="sidebar-bottom">
-        <div className="privacy-note"><ShieldCheck size={16} /><span>Seus dados ficam<br />neste dispositivo.</span></div>
+        <div className="privacy-note"><ShieldCheck size={16} /><span>Seus registros ficam<br />neste navegador.</span></div>
         <div className="sidebar-motto">Pequenos passos.<br /><span>Direção constante.</span></div>
         <a className="sidebar-version" href="#privacy" onClick={(event) => event.preventDefault()}>AXIS Pessoal <ArrowUpRight size={13} /></a>
       </div>
@@ -145,7 +145,7 @@ export function MobileNavigation({ active, onNavigate }: { active: AxisView; onN
         <div id={menuId} ref={menuPanelRef} className="mobile-menu-sheet" role="dialog" aria-modal="true" aria-labelledby={menuTitleId} tabIndex={-1}>
           <div className="mobile-menu-heading"><div><p className="eyebrow">NAVEGAR</p><h2 id={menuTitleId}>Seu espaço</h2></div><button className="icon-button" type="button" onClick={() => setMenuOpen(false)} aria-label="Fechar menu"><X size={18} /></button></div>
           <NavLinks active={active} onNavigate={change} />
-          <div className="mobile-privacy"><ShieldCheck size={15} /> Seus dados ficam neste dispositivo.</div>
+          <div className="mobile-privacy"><ShieldCheck size={15} /> Seus registros ficam neste navegador.</div>
         </div>
       </div>}
       <nav className="mobile-bottom-nav" aria-label="Navegação mobile">

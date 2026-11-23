@@ -778,3 +778,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* AXIS identity and restrained motion accents */
+:root { --coral: #ff9278; --blue: #8fd5e8; --lime: #d6f477; --lime-strong: #c8ec61; --lime-dim: rgba(214,244,119,.14); }
+.brand-symbol { width: 34px; height: 34px; object-fit: contain; filter: drop-shadow(0 4px 12px rgba(255,146,120,.17)); }
+.brand-compact .brand-symbol { width: 29px; height: 29px; }
+.welcome-brand-art { position: absolute; z-index: 1; right: 16%; top: 50%; width: clamp(145px, 20vw, 235px); height: auto; transform: translateY(-50%); opacity: .92; filter: drop-shadow(0 14px 35px rgba(255,146,120,.18)); animation: brand-drift 7s ease-in-out infinite; }
+.welcome-banner { border-color: rgba(255,146,120,.28); background: radial-gradient(ellipse at 76% 50%, rgba(255,146,120,.18), transparent 32%), radial-gradient(ellipse at 42% 20%, rgba(143,213,232,.10), transparent 35%), linear-gradient(112deg,#1e241b 0%,#1c211b 48%,#282019 100%); }
+.welcome-banner::before { background: linear-gradient(100deg,rgba(24,30,24,.94),rgba(24,30,24,.12)); }
+.nav-item.active { border-color: rgba(255,146,120,.19); background: linear-gradient(100deg,rgba(214,244,119,.12),rgba(255,146,120,.07)); }
+.panel,.stat-tile,.entity-card,.journal-card,.quick-action-card { transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease; }
+.panel:hover,.stat-tile:hover,.entity-card:hover,.journal-card:hover { border-color: rgba(143,213,232,.17); }
+button:active:not(:disabled) { transform: scale(.985); }
+.axis-chat-subtitle { margin: 2px 0 0; color: #a4b2a3; font-size: 10px; line-height: 1.4; }
+@keyframes brand-drift { 0%,100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+@media (max-width:720px) { .welcome-brand-art { right: 5%; width: 145px; opacity: .45; } .welcome-copy { z-index: 2; } }
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; } }

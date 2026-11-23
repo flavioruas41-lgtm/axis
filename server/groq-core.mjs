@@ -16,12 +16,12 @@ const SYSTEM_INSTRUCTION = [
 
 const ERROR_MESSAGES = {
   missingKey: 'O chat ainda não foi configurado no servidor. Tente novamente mais tarde.',
-  network: 'Não foi possível conectar à Groq. Verifique a conexão e tente novamente (AXIS-GROQ-NETWORK).',
-  timeout: 'A Groq demorou para responder. Tente novamente em instantes (AXIS-GROQ-TIMEOUT).',
-  quota: 'O limite gratuito ou de uso da sua conta Groq foi atingido. Aguarde e tente novamente; o AXIS não usa fallback pago.',
-  credentials: 'A chave Groq configurada no servidor foi recusada.',
-  provider: 'A Groq retornou uma resposta em formato inesperado (AXIS-GROQ-INVALID-RESPONSE).',
-  empty: 'A Groq retornou uma resposta sem texto (AXIS-GROQ-EMPTY-RESPONSE).',
+  network: 'Não foi possível conectar ao chat. Verifique sua conexão e tente novamente.',
+  timeout: 'O chat está demorando para responder. Tente novamente em instantes.',
+  quota: 'O chat está temporariamente indisponível. Aguarde um pouco e tente novamente.',
+  credentials: 'O chat está temporariamente indisponível. Tente novamente mais tarde.',
+  provider: 'O chat recebeu uma resposta inesperada. Tente novamente.',
+  empty: 'O chat não recebeu uma resposta. Tente novamente.',
 };
 
 export function validateChatMessages(value) {
@@ -106,27 +106,27 @@ export function extractAssistantText(completion) {
 function publicProviderError(status) {
   const diagnosticCode = `AXIS-GROQ-HTTP-${status}`;
   if (status === 401) {
-    return { status: 503, error: `${ERROR_MESSAGES.credentials} (HTTP 401; ${diagnosticCode})` };
+    return { status: 503, error: ERROR_MESSAGES.credentials };
   }
   if (status === 403) {
     return {
       status: 503,
-      error: `A Groq negou acesso à API ou ao modelo (HTTP 403; ${diagnosticCode}).`,
+      error: `O chat está temporariamente indisponível. Tente novamente mais tarde.`,
     };
   }
   if (status === 429) {
-    return { status: 429, error: `${ERROR_MESSAGES.quota} (HTTP 429; ${diagnosticCode})` };
+    return { status: 429, error: ERROR_MESSAGES.quota };
   }
   if (status === 400 || status === 422) {
-    return { status: 422, error: `A Groq rejeitou a solicitação (HTTP ${status}; ${diagnosticCode}).` };
+    return { status: 422, error: `Não foi possível processar a mensagem. Revise o texto e tente novamente.` };
   }
   if (status === 404) {
-    return { status: 502, error: `A Groq não encontrou o endpoint ou modelo (HTTP 404; ${diagnosticCode}).` };
+    return { status: 502, error: `O chat está temporariamente indisponível. Tente novamente mais tarde.` };
   }
   if (status >= 500) {
-    return { status: 502, error: `A Groq teve uma falha temporária (HTTP ${status}; ${diagnosticCode}).` };
+    return { status: 502, error: `O chat está temporariamente indisponível. Tente novamente em instantes.` };
   }
-  return { status: 502, error: `A Groq retornou um erro HTTP ${status} (${diagnosticCode}).` };
+  return { status: 502, error: `Não foi possível concluir o envio. Tente novamente em instantes.` };
 }
 
 export async function generateChatReply(messages, {

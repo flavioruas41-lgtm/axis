@@ -118,14 +118,14 @@
   letter-spacing: -.035em;
   line-height: 1.35;
 }
-.axis-chat-model {
+.axis-chat-subtitle {
   max-width: 245px;
   margin: 2px 0 0;
   color: #819084;
   font-size: 9px;
   line-height: 1.45;
 }
-.axis-chat-model span { padding: 0 2px; color: var(--axis-chat-lime); }
+
 
 .axis-chat-icon-button {
   display: grid;
@@ -436,7 +436,7 @@
 
   .axis-chat-header { min-height: 76px; padding: 12px 12px; }
   .axis-chat-avatar { width: 36px; height: 36px; }
-  .axis-chat-model { max-width: min(62vw, 250px); font-size: 8px; }
+  .axis-chat-subtitle { max-width: min(62vw, 250px); font-size: 8px; }
   .axis-chat-conversation { padding: 14px 12px; }
   .axis-chat-compose-area { padding: 9px 10px calc(9px + env(safe-area-inset-bottom, 0px)); }
   .axis-chat-consent { padding: 8px 9px; }
@@ -450,7 +450,7 @@
   .axis-chat-header { gap: 6px; padding-right: 8px; padding-left: 9px; }
   .axis-chat-identity { gap: 8px; }
   .axis-chat-avatar { width: 33px; height: 33px; }
-  .axis-chat-model { max-width: 190px; }
+  .axis-chat-subtitle { max-width: 190px; }
   .axis-chat-icon-button { width: 32px; height: 34px; }
   .axis-chat-input-hint { font-size: 7px; }
 }

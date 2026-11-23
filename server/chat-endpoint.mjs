@@ -218,7 +218,7 @@ export function createChatHandler({
       }
     } catch {
       if (!response.destroyed && !response.writableEnded) {
-        sendJson(response, 502, { error: 'A Groq não conseguiu responder agora. Tente novamente depois.' });
+        sendJson(response, 502, { error: 'O chat está temporariamente indisponível. Tente novamente depois.' });
       }
     } finally {
       response.off('close', abortWhenClientLeaves);

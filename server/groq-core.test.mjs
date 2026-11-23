@@ -77,17 +77,17 @@ test('usa uma única chamada Groq e não faz fallback pago quando recebe 429', a
   assert.equal(Object.hasOwn(sentBody, 'store'), false);
   assert.equal(sentHeaders.Authorization, 'Bearer test-key-only');
   assert.equal(result.status, 429);
-  assert.match(result.error, /limite gratuito.*não usa fallback pago/i)
-  assert.match(result.error, /AXIS-GROQ-HTTP-429/);
+  assert.match(result.error, /temporariamente indisponível/i)
+  assert.match(result.error, /temporariamente indisponível/);
 });
 
 test('retorna e registra apenas status/código da Groq, nunca mensagem ou chave', async () => {
   const cases = [
-    [400, /AXIS-GROQ-HTTP-400/],
-    [401, /AXIS-GROQ-HTTP-401/],
-    [403, /AXIS-GROQ-HTTP-403/],
-    [404, /AXIS-GROQ-HTTP-404/],
-    [503, /AXIS-GROQ-HTTP-503/],
+    [400, /Não foi possível processar a mensagem/],
+    [401, /temporariamente indisponível/],
+    [403, /temporariamente indisponível/],
+    [404, /temporariamente indisponível/],
+    [503, /temporariamente indisponível/],
   ];
   const logs = [];
   const originalWarn = console.warn;
@@ -125,7 +125,7 @@ test('classifica JSON inválido e resposta sem texto com códigos distintos', as
     fetchImpl: async () => new Response('PRIVATE_RAW_RESPONSE', { status: 200 }),
   });
   assert.equal(invalidJson.ok, false);
-  assert.match(invalidJson.error, /AXIS-GROQ-INVALID-RESPONSE/);
+  assert.match(invalidJson.error, /resposta inesperada/);
   assert.doesNotMatch(invalidJson.error, /PRIVATE_RAW_RESPONSE/);
 
   const emptyText = await generateChatReply(messages, {
@@ -133,7 +133,7 @@ test('classifica JSON inválido e resposta sem texto com códigos distintos', as
     fetchImpl: async () => new Response(JSON.stringify({ choices: [{ message: { role: 'assistant', content: '' } }] }), { status: 200 }),
   });
   assert.equal(emptyText.ok, false);
-  assert.match(emptyText.error, /AXIS-GROQ-EMPTY-RESPONSE/);
+  assert.match(emptyText.error, /não recebeu uma resposta/);
 });
 
 test('converte somente texto da resposta em objeto mínimo para a interface', async () => {

@@ -55,3 +55,11 @@
 - [x] ZIP Termux recriado com a interface Groq e sem `.env`, chave, `node_modules` ou referências ao provedor anterior.
 - [x] Usuário confirmou organização Groq Free sem faturamento e variável `GROQ_API_KEY` configurada diretamente na Vercel; chave não foi compartilhada no chat.
 - [x] `GROQ_API_KEY` configurada como segredo server-side em Preview e Production; código publicado sem expor a chave.
+
+
+## Redesign e identidade visual
+
+- [ ] Remover da interface principal nomes de modelo, rótulos de provedor/quota e códigos técnicos; o cabeçalho do assistente usa linguagem simples.
+- [ ] Corrigir microcopy para dizer que os registros do organizador são locais e que o texto enviado ao chat é processado externamente; manter o consentimento claro antes do primeiro envio.
+- [ ] Integrar a imagem original de identidade visual no wordmark e no banner inicial, mantendo dimensões leves e fallback existente.
+- [ ] Tornar o AXIS mais vivo com cores de acento, estados e transições perceptíveis, sem prejudicar responsividade, contraste, controles existentes ou usuários com preferência por movimento reduzido.

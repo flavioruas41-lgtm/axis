@@ -164,7 +164,7 @@ test('HTTP 429 da Groq vira orientação de limite e não faz fallback pago', as
 
     assert.equal(response.status, 429);
     assert.equal(response.headers.get('retry-after'), '60');
-    assert.match(data.error, /limite gratuito/i);
+    assert.match(data.error, /temporariamente indisponível/i);
     assert.equal(calls, 1);
   });
 });
@@ -188,7 +188,7 @@ test('erro upstream mostra status seguro sem expor a mensagem bruta da Groq', as
     const data = await response.json();
 
     assert.equal(response.status, 422);
-    assert.match(data.error, /HTTP 400; AXIS-GROQ-HTTP-400/);
+    assert.match(data.error, /Não foi possível processar a mensagem/);
     assert.doesNotMatch(data.error, new RegExp(privateProviderText));
   });
 });

@@ -44,6 +44,7 @@ export default function DashboardPage({
       <PageHeading eyebrow={currentDate} title="Olhe para sua direção." description="Um passo claro já é progresso." actions={<button className="button button-primary" onClick={() => onAdd('task')}><Plus size={17} /> Nova tarefa</button>} />
 
       <section className="welcome-banner">
+        <img className="welcome-brand-art" src="/images/axis-brand-symbol.webp" alt="" aria-hidden="true" />
         <div className="welcome-copy"><span className="welcome-kicker"><span className="pulse-dot" /> SEU ESPAÇO, SEU RITMO</span><h2>Comece pelo que<br /><span>importa hoje.</span></h2><p>Escolha o que merece sua atenção. O restante pode esperar.</p><button className="text-link" onClick={() => onNavigate('routine')}>Ver leitura da rotina <ArrowRight size={16} /></button></div>
         <div className="welcome-count"><span>TAREFAS EM ABERTO</span><strong>{pending.length.toString().padStart(2, '0')}</strong><small>{state.tasks.filter((task) => !task.completed && task.dueDate === today).length} com prazo hoje</small></div>
       </section>
@@ -67,7 +68,7 @@ export default function DashboardPage({
         <Panel className={`insight-panel insight-${primaryInsight.kind}`}>
           <div className="panel-heading"><div><p className="eyebrow">LEITURA DO AXIS</p><h2>Um sinal para hoje</h2></div><span className="insight-icon"><InsightIcon size={19} /></span></div>
           <div className="insight-content"><p className="insight-title">{primaryInsight.title}</p><p className="insight-body">{primaryInsight.body}</p><button className="text-link" onClick={() => onNavigate(primaryInsight.target)}>{primaryInsight.action} <ArrowRight size={15} /></button></div>
-          <div className="local-analysis-note"><ShieldCheck size={14} /><span>Análise feita no aparelho, com seus próprios registros.</span></div>
+          <div className="local-analysis-note"><ShieldCheck size={14} /><span>Leitura feita neste navegador, com seus registros.</span></div>
         </Panel>
       </div>
 
