@@ -1,27 +1,27 @@
-export const GEMINI_MODEL = 'gemini-3.8-flash';
+export const GROQ_MODEL = 'llama-3.1-8b-instant';
 export const MAX_HISTORY_MESSAGES = 12;
 export const MAX_MESSAGE_CHARACTERS = 1600;
 export const MAX_HISTORY_CHARACTERS = MAX_HISTORY_MESSAGES * MAX_MESSAGE_CHARACTERS;
 export const MAX_REPLY_CHARACTERS = 6000;
 
-const INTERACTIONS_URL = 'https://generativelanguage.googleapis.com/v1beta/interactions';
+const CHAT_COMPLETIONS_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 const SYSTEM_INSTRUCTION = [
   'Você é o Assistente AXIS, um organizador pessoal acolhedor e prático.',
   'Responda em português brasileiro com clareza e concisão.',
-  'Você só conhece o conteúdo desta conversa: não tem acesso a tarefas, objetivos, projetos, hábitos, Estudos, Diário, finanças ou outros dados do AXIS.',
+  'Você só conhece o conteúdo desta conversa: não tem acesso a tarefas, objetivos, projetos, hábitos, estudos, diário, finanças ou outros dados do AXIS.',
   'Não afirme que consultou ou alterou registros, criou tarefas, enviou lembretes ou acessou informações externas.',
   'Dê sugestões realistas, faça perguntas quando faltarem detalhes e não se apresente como profissional médico, jurídico ou financeiro.',
 ].join(' ');
 
 const ERROR_MESSAGES = {
   missingKey: 'O chat ainda não foi configurado no servidor. Tente novamente mais tarde.',
-  network: 'Não foi possível conectar ao Gemini. Verifique a conexão e tente novamente (AXIS-GEMINI-NETWORK).',
-  timeout: 'O Gemini demorou para responder. Tente novamente em instantes (AXIS-GEMINI-TIMEOUT).',
-  quota: 'A cota gratuita do Gemini foi atingida ou está temporariamente ocupada. Aguarde e tente novamente.',
-  credentials: 'A chave Gemini configurada no servidor foi recusada. Verifique a configuração da chave.',
-  provider: 'O Gemini retornou uma resposta em formato inesperado (AXIS-GEMINI-INVALID-RESPONSE).',
-  empty: 'O Gemini retornou uma resposta sem texto (AXIS-GEMINI-EMPTY-RESPONSE).',
+  network: 'Não foi possível conectar à Groq. Verifique a conexão e tente novamente (AXIS-GROQ-NETWORK).',
+  timeout: 'A Groq demorou para responder. Tente novamente em instantes (AXIS-GROQ-TIMEOUT).',
+  quota: 'O limite gratuito ou de uso da sua conta Groq foi atingido. Aguarde e tente novamente; o AXIS não usa fallback pago.',
+  credentials: 'A chave Groq configurada no servidor foi recusada.',
+  provider: 'A Groq retornou uma resposta em formato inesperado (AXIS-GROQ-INVALID-RESPONSE).',
+  empty: 'A Groq retornou uma resposta sem texto (AXIS-GROQ-EMPTY-RESPONSE).',
 };
 
 export function validateChatMessages(value) {
@@ -82,79 +82,54 @@ export function validateChatPayload(payload) {
   return validateChatMessages(payload.messages);
 }
 
-export function buildGeminiInteraction(messages) {
+export function buildGroqChatCompletion(messages) {
   return {
-    model: GEMINI_MODEL,
-    input: messages.map((message) => ({
-      type: message.role === 'assistant' ? 'model_output' : 'user_input',
-      content: [{ type: 'text', text: message.content }],
-    })),
-    system_instruction: SYSTEM_INSTRUCTION,
-    generation_config: {
-      max_output_tokens: 480,
-      thinking_level: 'low',
-    },
-    store: false,
+    model: GROQ_MODEL,
+    messages: [
+      { role: 'system', content: SYSTEM_INSTRUCTION },
+      ...messages.map(({ role, content }) => ({ role, content })),
+    ],
+    max_completion_tokens: 480,
+    temperature: 0.4,
   };
 }
 
-export function extractGeminiText(interaction) {
-  if (typeof interaction?.output_text === 'string' && interaction.output_text.trim()) {
-    return interaction.output_text.trim().slice(0, MAX_REPLY_CHARACTERS);
-  }
-
-  const steps = Array.isArray(interaction?.steps) ? interaction.steps : [];
-  const textFromSteps = steps
-    .filter((step) => step?.type === 'model_output' && Array.isArray(step.content))
-    .flatMap((step) => step.content)
-    .filter((part) => part?.type === 'text' && typeof part.text === 'string')
-    .map((part) => part.text)
-    .join('')
-    .trim();
-  if (textFromSteps) return textFromSteps.slice(0, MAX_REPLY_CHARACTERS);
-
-  const candidates = interaction?.candidates;
-  if (Array.isArray(candidates)) {
-    const fallback = candidates
-      .flatMap((candidate) => Array.isArray(candidate?.content?.parts) ? candidate.content.parts : [])
-      .filter((part) => typeof part?.text === 'string')
-      .map((part) => part.text)
-      .join('')
-      .trim();
-    if (fallback) return fallback.slice(0, MAX_REPLY_CHARACTERS);
-  }
-
-  return '';
+export function extractAssistantText(completion) {
+  const message = completion?.choices?.[0]?.message;
+  if (message?.role !== 'assistant') return '';
+  const content = message.content;
+  if (typeof content !== 'string' || !content.trim()) return '';
+  return content.trim().slice(0, MAX_REPLY_CHARACTERS);
 }
 
 function publicProviderError(status) {
-  const diagnosticCode = `AXIS-GEMINI-HTTP-${status}`;
+  const diagnosticCode = `AXIS-GROQ-HTTP-${status}`;
   if (status === 401) {
     return { status: 503, error: `${ERROR_MESSAGES.credentials} (HTTP 401; ${diagnosticCode})` };
   }
   if (status === 403) {
     return {
       status: 503,
-      error: `O Google negou acesso à Gemini API (HTTP 403; ${diagnosticCode}). Confira o estado da chave e a elegibilidade do projeto para a faixa gratuita.`,
+      error: `A Groq negou acesso à API ou ao modelo (HTTP 403; ${diagnosticCode}).`,
     };
   }
   if (status === 429) {
     return { status: 429, error: `${ERROR_MESSAGES.quota} (HTTP 429; ${diagnosticCode})` };
   }
   if (status === 400 || status === 422) {
-    return { status: 422, error: `O Google rejeitou a solicitação Gemini (HTTP ${status}; ${diagnosticCode}).` };
+    return { status: 422, error: `A Groq rejeitou a solicitação (HTTP ${status}; ${diagnosticCode}).` };
   }
   if (status === 404) {
-    return { status: 502, error: `O Google não encontrou o endpoint ou modelo solicitado (HTTP 404; ${diagnosticCode}).` };
+    return { status: 502, error: `A Groq não encontrou o endpoint ou modelo (HTTP 404; ${diagnosticCode}).` };
   }
   if (status >= 500) {
-    return { status: 502, error: `O Gemini teve uma falha temporária (HTTP ${status}; ${diagnosticCode}).` };
+    return { status: 502, error: `A Groq teve uma falha temporária (HTTP ${status}; ${diagnosticCode}).` };
   }
-  return { status: 502, error: `O Gemini retornou um erro HTTP ${status} (${diagnosticCode}).` };
+  return { status: 502, error: `A Groq retornou um erro HTTP ${status} (${diagnosticCode}).` };
 }
 
-export async function generateGeminiReply(messages, {
-  apiKey = process.env.AXIS_GEMINI_API_KEY,
+export async function generateChatReply(messages, {
+  apiKey = process.env.GROQ_API_KEY,
   fetchImpl = globalThis.fetch,
   signal,
 } = {}) {
@@ -181,23 +156,23 @@ export async function generateGeminiReply(messages, {
 
   let response;
   try {
-    response = await fetchImpl(INTERACTIONS_URL, {
+    response = await fetchImpl(CHAT_COMPLETIONS_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey,
+        Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify(buildGeminiInteraction(messages)),
+      body: JSON.stringify(buildGroqChatCompletion(messages)),
       ...(requestSignal ? { signal: requestSignal } : {}),
     });
   } catch (error) {
     if (signal?.aborted) return { ok: false, status: 499, error: 'O envio foi cancelado.' };
     if (timeoutSignal?.aborted) {
-      console.warn('[AXIS Gemini] timeout', JSON.stringify({ timeoutMs: 45_000 }));
+      console.warn('[AXIS Groq] timeout', JSON.stringify({ timeoutMs: 45_000 }));
       return { ok: false, status: 504, error: ERROR_MESSAGES.timeout };
     }
     const errorName = error instanceof Error && /^[A-Za-z]+Error$/.test(error.name) ? error.name : 'NetworkError';
-    console.warn('[AXIS Gemini] network_failure', JSON.stringify({ errorName }));
+    console.warn('[AXIS Groq] network_failure', JSON.stringify({ errorName }));
     return { ok: false, status: 502, error: ERROR_MESSAGES.network };
   }
 
@@ -205,29 +180,29 @@ export async function generateGeminiReply(messages, {
     let providerCode;
     try {
       const details = await response.clone().json();
-      const candidate = details?.error?.status;
-      if (typeof candidate === 'string' && /^[A-Z0-9_]{1,48}$/.test(candidate)) providerCode = candidate;
+      const candidate = details?.error?.code ?? details?.error?.type;
+      if (typeof candidate === 'string' && /^[A-Za-z0-9_-]{1,48}$/.test(candidate)) providerCode = candidate;
     } catch {
       // Keep provider details private; the HTTP status is enough for diagnosis.
     }
-    console.warn('[AXIS Gemini] upstream_http_error', JSON.stringify({
+    console.warn('[AXIS Groq] upstream_http_error', JSON.stringify({
       httpStatus: response.status,
       ...(providerCode ? { providerCode } : {}),
     }));
     return { ok: false, ...publicProviderError(response.status) };
   }
 
-  let interaction;
+  let completion;
   try {
-    interaction = await response.json();
+    completion = await response.json();
   } catch {
-    console.warn('[AXIS Gemini] invalid_json_response', JSON.stringify({ httpStatus: response.status }));
+    console.warn('[AXIS Groq] invalid_json_response', JSON.stringify({ httpStatus: response.status }));
     return { ok: false, status: 502, error: ERROR_MESSAGES.provider };
   }
 
-  const reply = extractGeminiText(interaction);
+  const reply = extractAssistantText(completion);
   if (!reply) {
-    console.warn('[AXIS Gemini] empty_text_response', JSON.stringify({ httpStatus: response.status }));
+    console.warn('[AXIS Groq] empty_text_response', JSON.stringify({ httpStatus: response.status }));
     return { ok: false, status: 502, error: ERROR_MESSAGES.empty };
   }
   return { ok: true, status: 200, reply };

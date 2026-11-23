@@ -1,7 +1,7 @@
 const CACHE_PREFIX = 'axis-shell-';
 const CACHE_NAME = `${CACHE_PREFIX}v4`;
 const CORE_FILES = ['/', '/manifest.webmanifest', '/icons/axis-icon.svg', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/apple-touch-icon.png', '/images/axis-journal-photo.webp'];
-const BUILD_ASSETS = ["/assets/atkinson-hyperlegible-latin-ext-400-normal-Bbz-b3yf.woff","/assets/atkinson-hyperlegible-latin-ext-400-normal-DRk46D-x.woff2","/assets/atkinson-hyperlegible-latin-ext-700-normal-BoVPHkS0.woff2","/assets/atkinson-hyperlegible-latin-ext-700-normal-CKkU2Dpt.woff","/assets/index-B07lMcX1.js","/assets/index-YFwr2vfI.css","/assets/newsreader-latin-ext-wght-normal-C-3rgBeH.woff2","/assets/newsreader-latin-wght-normal-CCVVNp6i.woff2","/assets/newsreader-vietnamese-wght-normal-Czsa-EzN.woff2"];
+const BUILD_ASSETS = ["/assets/atkinson-hyperlegible-latin-ext-400-normal-Bbz-b3yf.woff","/assets/atkinson-hyperlegible-latin-ext-400-normal-DRk46D-x.woff2","/assets/atkinson-hyperlegible-latin-ext-700-normal-BoVPHkS0.woff2","/assets/atkinson-hyperlegible-latin-ext-700-normal-CKkU2Dpt.woff","/assets/index-YFwr2vfI.css","/assets/index-oCutVg-V.js","/assets/newsreader-latin-ext-wght-normal-C-3rgBeH.woff2","/assets/newsreader-latin-wght-normal-CCVVNp6i.woff2","/assets/newsreader-vietnamese-wght-normal-Czsa-EzN.woff2"];
 const SHELL_FILES = [...CORE_FILES, ...BUILD_ASSETS];
 
 self.addEventListener('install', (event) => {

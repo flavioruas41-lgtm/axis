@@ -1,4 +1,4 @@
-import { generateGeminiReply, validateChatPayload } from './gemini-core.mjs';
+import { generateChatReply, validateChatPayload } from './groq-core.mjs';
 
 const MAX_BODY_BYTES = 64 * 1024;
 export const RATE_WINDOW_MS = 60_000;
@@ -157,7 +157,7 @@ export function createRateLimiter({
 }
 
 export function createChatHandler({
-  getApiKey = () => process.env.AXIS_GEMINI_API_KEY,
+  getApiKey = () => process.env.GROQ_API_KEY,
   fetchImpl = globalThis.fetch,
   rateLimiter = createRateLimiter(),
 } = {}) {
@@ -203,7 +203,7 @@ export function createChatHandler({
     response.on('close', abortWhenClientLeaves);
 
     try {
-      const result = await generateGeminiReply(validated.messages, {
+      const result = await generateChatReply(validated.messages, {
         apiKey: getApiKey(),
         fetchImpl,
         signal: controller.signal,
@@ -218,7 +218,7 @@ export function createChatHandler({
       }
     } catch {
       if (!response.destroyed && !response.writableEnded) {
-        sendJson(response, 502, { error: 'O Gemini não conseguiu responder agora. Tente novamente depois.' });
+        sendJson(response, 502, { error: 'A Groq não conseguiu responder agora. Tente novamente depois.' });
       }
     } finally {
       response.off('close', abortWhenClientLeaves);

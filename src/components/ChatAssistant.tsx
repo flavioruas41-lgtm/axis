@@ -14,7 +14,7 @@ type ChatResponse = {
 
 const MAX_MESSAGE_LENGTH = 1600;
 const MAX_CONTEXT_MESSAGES = 12;
-const PRIVACY_NOTICE = 'Suas mensagens serão enviadas ao Google Gemini para gerar respostas. No nível gratuito, o Google pode usar o conteúdo para melhorar produtos. O chat não consulta nem envia tarefas, objetivos, Diário, finanças ou outros dados do AXIS; não envie informações sensíveis.';
+const PRIVACY_NOTICE = 'Para gerar respostas, o texto do chat é enviado à Groq. A Groq informa que não retém pedidos de inferência por padrão, mas pode armazená-los temporariamente por até 30 dias em situações limitadas de confiabilidade ou investigação de abuso. O AXIS não envia tarefas, objetivos, Diário, finanças ou outros dados locais; não envie informações sensíveis. Use somente uma conta Groq Free, sem faturamento habilitado: o AXIS não faz fallback pago.';
 const FOCUSABLE_SELECTOR = [
   'a[href]',
   'button:not([disabled])',
@@ -207,7 +207,7 @@ export default function ChatAssistant() {
                 <div className="axis-chat-heading">
                   <p className="axis-chat-kicker">AXIS · CONVERSA</p>
                   <h2 id="axis-chat-title">Assistente</h2>
-                  <p id="axis-chat-subtitle" className="axis-chat-model">Gemini 3.8 Flash <span aria-hidden="true">·</span> cota gratuita sujeita aos limites do Google</p>
+                  <p id="axis-chat-subtitle" className="axis-chat-model">llama-3.1-8b-instant <span aria-hidden="true">·</span> limites gratuitos da Groq</p>
                 </div>
               </div>
               <div className="axis-chat-actions">
@@ -242,7 +242,7 @@ export default function ChatAssistant() {
                 </div>
               ) : messages.map((message, index) => (
                 <article className={`axis-chat-message axis-chat-message-${message.role}`} key={`${index}-${message.role}`}>
-                  <span className="axis-chat-message-label">{message.role === 'user' ? 'Você' : 'Gemini'}</span>
+                  <span className="axis-chat-message-label">{message.role === 'user' ? 'Você' : 'AXIS'}</span>
                   <p className="axis-chat-message-content">{message.content}</p>
                 </article>
               ))}

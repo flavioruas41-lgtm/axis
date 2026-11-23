@@ -1,1 +1,1 @@
-Leia AXIS-Termux-Guia.md. O servidor serve o build PWA da pasta dist/; rode node serve-termux.mjs no Termux e abra http://127.0.0.1:3000 no Chrome. A chave Gemini é opcional, deve ser informada no ambiente do Termux e nunca é incluída neste ZIP.
+Leia AXIS-Termux-Guia.md. O servidor serve o build PWA da pasta dist/; rode node serve-termux.mjs no Termux e abra http://127.0.0.1:3000 no Chrome. O chat Groq é opcional: use uma conta gratuita sem faturamento, informe GROQ_API_KEY no ambiente do Termux e nunca inclua a chave neste ZIP.

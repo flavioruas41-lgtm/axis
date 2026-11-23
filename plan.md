@@ -1,30 +1,29 @@
-# Plano — Assistente Gemini no AXIS
+# Plano — Assistente Groq no AXIS
 
 ## Objetivo e decisões aprovadas
 
-Adicionar ao AXIS um chat responsivo em português que usa apenas o Gemini 3.8 Flash na camada gratuita do Google. O usuário foi avisado de que as mensagens são enviadas ao Google e podem ser usadas para melhoria de produtos no Free Tier; confirmou que aceita isso se o chat enviar somente o texto da conversa. Não anexar, consultar nem resumir tarefas, objetivos, projetos, hábitos, estudos, Diário, finanças ou quaisquer registros locais. A conversa permanece apenas durante a sessão do navegador e é explicitamente enviada com `store:false` para não criar histórico de Interactions no servidor do Google. Não configurar faturamento nem fallback pago; quota indisponível resulta em mensagem explicativa.
+Trocar o provedor do chat opcional do AXIS pelo modelo `llama-3.1-8b-instant` da Groq. A prioridade é não gerar cobrança: usar somente uma organização no nível gratuito, sem habilitar faturamento, sem fallback para outro provedor e com interrupção clara quando a Groq atingir seus limites. A API não deve ser chamada em testes automatizados. A publicação permanece bloqueada até a conta gratuita e o segredo server-side `GROQ_API_KEY` estarem configurados sem exposição no chat.
 
-Manter a identidade editorial existente do AXIS e carregar a ferramenta apenas como painel opcional. O restante do app — armazenamento local, rotinas, funcionamento offline — não depende do Gemini. O chat exige internet e consentimento explícito dentro do painel antes do primeiro envio.
+Não anexar, consultar nem resumir tarefas, objetivos, projetos, hábitos, estudos, Diário, finanças ou outros registros locais. Somente o histórico curto que o usuário digita no painel pode ser enviado. Não prometer ausência absoluta de retenção no provedor: Chat Completions não aceita `store:false`; a Groq declara que pedidos de inferência não são retidos por padrão, mas podem ser armazenados temporariamente por até 30 dias em circunstâncias limitadas. Não presumir ZDR habilitado.
 
 ## Arquitetura de aplicação
 
-A UI fica em `src/components/ChatAssistant.tsx`, montada uma única vez no shell de `src/App.tsx` para conservar a conversa durante a navegação entre áreas. `src/chat.css` define o painel acessível e responsivo, sem cobrir a navegação mobile. Mensagens ficam somente em estado React; “Limpar conversa” apaga esse estado. Nenhum provider key nem dado pessoal do AXIS entra no bundle estático.
+A UI permanece em `src/components/ChatAssistant.tsx`, no shell do `src/App.tsx`; mensagens ficam somente em estado React e são apagadas ao recarregar. O aviso de consentimento informa a transmissão à Groq, os limites de retenção publicados e o uso exclusivo da conta gratuita.
 
-`server/gemini-core.mjs` valida/normaliza o histórico curto e chama `POST https://generativelanguage.googleapis.com/v1beta/interactions` com o modelo `gemini-3.8-flash`, `store:false`, entrada construída somente dos pares user/assistant do chat, instrução de sistema curta, saída limitada e `thinking_level` baixo. O processo lê `AXIS_GEMINI_API_KEY` somente em runtime. Não armazena nem registra prompts, respostas ou chave; respostas traduzem cota 429, chave/configuração ausente, rede e bloqueios de segurança em mensagens sem conteúdo interno do provedor.
+`server/groq-core.mjs` valida/normaliza o histórico curto e chama `POST https://api.groq.com/openai/v1/chat/completions` com `llama-3.1-8b-instant`. Envia apenas a instrução de sistema e os pares user/assistant do chat. Lê `GROQ_API_KEY` somente em runtime e não expõe a chave, prompts, respostas ou corpo bruto nos logs. Erros de rede, falta de chave, limite 429 e falhas do provedor viram mensagens seguras; não há fallback.
 
-`server/chat-endpoint.mjs` aplica limite de corpo, método, roles, caracteres/histórico e timeout antes de chamar o núcleo; verifica Fetch Metadata/Origin, envia JSON `no-store` e limita chamadas por IP, por minuto e por dia em memória de processo. Esses limites reduzem abuso, mas não são autenticação e não são compartilhados entre processos; as quotas gratuitas do Google permanecem o limite final. `vite.config.ts` reutiliza o endpoint em `/api/chat` no Preview de desenvolvimento. `server/index.mjs` serve esse endpoint, o health check e os arquivos estáticos compilados em produção. A requisição do navegador é same-origin; o servidor não habilita CORS público.
+`server/chat-endpoint.mjs` aplica limite de corpo, método, roles, caracteres/histórico e timeout antes de chamar o núcleo; verifica Fetch Metadata/Origin, envia JSON `no-store` e limita chamadas por IP, por minuto e por dia em memória de processo. Esses limites reduzem abuso, mas não são autenticação nem uma cota global compartilhada entre instâncias. `vite.config.ts` reutiliza o endpoint em `/api/chat` no Preview de desenvolvimento. `server/index.mjs` e `api/chat.js` atendem o mesmo endpoint em produção/Termux. O frontend permanece same-origin e nenhum provedor key entra no bundle.
 
-## Build e publicação
+## Build, Termux e publicação
 
-O build estático existente continua produzindo `dist/` para o site/PWA. O `Dockerfile` instala o lockfile, compila o front-end e inicia `server/index.mjs`, que honra `PORT` e atende `/_app/health`. O roteamento publicado direciona `/_app/health` e `/api/*` ao container (API com `no-cache`) e o catch-all `/*` ao build estático com fallback SPA. Backend e banco de dados são distintos: habilitar apenas `features.server`, sem ativar ou criar banco.
+O build estático existente continua produzindo `dist/`. O servidor Termux pode receber `GROQ_API_KEY` no ambiente da sessão, fora do ZIP e sem salvá-la no armazenamento do AXIS; sem a chave, os demais recursos continuam disponíveis. O guia deve explicar os passos para Termux e ser honesto sobre retenção e limites da Groq.
 
-O Preview só poderá chamar a API após a chave ser cadastrada no escopo de desenvolvimento; a versão publicada requer a mesma chave em produção. Solicitar `AXIS_GEMINI_API_KEY` pelo formulário protegido do projeto, em vez de pedir ou colocar o valor no chat, código, configuração, `.env`, ZIP, logs ou Git. Após a entrega, atualizar o pacote Termux e o guia: o servidor local encaminha `/api/chat` pelo mesmo núcleo e pede a chave interativamente no Termux quando necessário; ela não acompanha o ZIP e não é salva como conteúdo do AXIS.
+Para Vercel, configurar `GROQ_API_KEY` somente como segredo server-side em Production e Preview, sem prefixo `VITE_`. Não publicar até o usuário confirmar que a organização está no nível gratuito e que o segredo foi cadastrado na Vercel. Nenhuma chamada real à Groq é necessária ou permitida para as verificações automatizadas.
 
-## Estrutura principal prevista
+## Estrutura principal
 
 - `src/components/ChatAssistant.tsx`, `src/chat.css`: experiência acessível, consentimento, contexto efêmero e estados de resposta.
-- `server/gemini-core.mjs`, `server/chat-endpoint.mjs`: validação, chamada stateless ao Gemini e erros minimizados.
-- `server/index.mjs`, `vite.config.ts`: processo de produção, Preview de desenvolvimento e health check.
-- `Dockerfile`: imagem híbrida estática + endpoint.
-- `serve-termux.mjs` e `Downloads/AXIS-Termux-Guia.md`: execução equivalente no Android, sem segredo no pacote.
-- `TODO.md`: requisitos de produto atualizados; preservar os resultados concluídos das áreas já existentes.
+- `server/groq-core.mjs`, `server/chat-endpoint.mjs`: validação, chamada Chat Completions Groq e erros minimizados.
+- `server/index.mjs`, `vite.config.ts`, `api/chat.js`: servidor, Preview e Function Vercel.
+- `serve-termux.mjs`, `AXIS-Termux-Guia.md`: execução no Android, sem segredo no pacote.
+- `README.md`, `README-VERCEL.md`, `TODO.md`: instruções, limites de dados e estado de configuração.

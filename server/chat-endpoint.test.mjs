@@ -26,14 +26,14 @@ async function withChatServer(options, run) {
 function successfulFetch(calls) {
   return async (url, options) => {
     calls.push({ url, options, body: JSON.parse(options.body) });
-    return new Response(JSON.stringify({ output_text: 'Separe primeiro o que tem horário marcado.' }), {
+    return new Response(JSON.stringify({ choices: [{ message: { role: 'assistant', content: 'Separe primeiro o que tem horário marcado.' } }] }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   };
 }
 
-test('POST válido envia somente histórico textual, pede store:false e responde sem cache', async () => {
+test('POST válido envia apenas histórico textual à Groq e responde sem cache', async () => {
   const calls = [];
   await withChatServer({ getApiKey: () => 'test-only-not-a-real-key', fetchImpl: successfulFetch(calls) }, async (origin) => {
     const response = await fetch(`${origin}/api/chat`, {
@@ -47,10 +47,11 @@ test('POST válido envia somente histórico textual, pede store:false e responde
     assert.match(response.headers.get('cache-control') || '', /no-store/);
     assert.equal(data.reply, 'Separe primeiro o que tem horário marcado.');
     assert.equal(calls.length, 1);
-    assert.equal(calls[0].body.store, false);
-    assert.equal(calls[0].body.model, 'gemini-3.8-flash');
-    assert.deepEqual(Object.keys(calls[0].body.input[0]), ['type', 'content']);
-    assert.equal(calls[0].body.input[0].content[0].text, validMessages[0].content);
+    assert.equal(calls[0].body.model, 'llama-3.1-8b-instant');
+    assert.equal(Object.hasOwn(calls[0].body, 'store'), false);
+    assert.equal(calls[0].body.messages[0].role, 'system');
+    assert.deepEqual(calls[0].body.messages[1], validMessages[0]);
+    assert.equal(calls[0].options.headers.Authorization, 'Bearer test-only-not-a-real-key');
     assert.equal(Object.hasOwn(calls[0].body, 'tasks'), false);
   });
 });
@@ -103,7 +104,7 @@ test('fetch same-origin do navegador funciona quando o proxy rebaseia Host para 
   });
 });
 
-test('payload com registros locais adicionais ou corpo acima do limite não segue ao Google', async () => {
+test('payload com registros locais adicionais ou corpo acima do limite não segue à Groq', async () => {
   const calls = [];
   await withChatServer({ getApiKey: () => 'test-only-not-a-real-key', fetchImpl: successfulFetch(calls) }, async (origin) => {
     const pollutedResponse = await fetch(`${origin}/api/chat`, {
@@ -140,13 +141,14 @@ test('segredo ausente não chama o provedor e devolve erro sem dados internos', 
   });
 });
 
-test('HTTP 429 do Gemini vira orientação de cota e não faz fallback', async () => {
+test('HTTP 429 da Groq vira orientação de limite e não faz fallback pago', async () => {
   let calls = 0;
   await withChatServer({
     getApiKey: () => 'test-only-not-a-real-key',
     fetchImpl: async (_url, options) => {
       calls += 1;
-      assert.equal(JSON.parse(options.body).store, false);
+      assert.equal(JSON.parse(options.body).model, 'llama-3.1-8b-instant');
+      assert.equal(Object.hasOwn(JSON.parse(options.body), 'store'), false);
       return new Response(JSON.stringify({ error: { code: 429 } }), {
         status: 429,
         headers: { 'Content-Type': 'application/json' },
@@ -162,12 +164,12 @@ test('HTTP 429 do Gemini vira orientação de cota e não faz fallback', async (
 
     assert.equal(response.status, 429);
     assert.equal(response.headers.get('retry-after'), '60');
-    assert.match(data.error, /cota gratuita/i);
+    assert.match(data.error, /limite gratuito/i);
     assert.equal(calls, 1);
   });
 });
 
-test('erro upstream mostra o status seguro sem expor a mensagem bruta do Google', async () => {
+test('erro upstream mostra status seguro sem expor a mensagem bruta da Groq', async () => {
   const privateProviderText = 'DETAIL_MUST_NOT_REACH_THE_CHAT';
   await withChatServer({
     getApiKey: () => 'test-only-not-a-real-key',
@@ -186,7 +188,7 @@ test('erro upstream mostra o status seguro sem expor a mensagem bruta do Google'
     const data = await response.json();
 
     assert.equal(response.status, 422);
-    assert.match(data.error, /HTTP 400; AXIS-GEMINI-HTTP-400/);
+    assert.match(data.error, /HTTP 400; AXIS-GROQ-HTTP-400/);
     assert.doesNotMatch(data.error, new RegExp(privateProviderText));
   });
 });

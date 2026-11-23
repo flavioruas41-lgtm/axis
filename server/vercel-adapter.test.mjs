@@ -44,22 +44,22 @@ function sameOriginHeaders(origin, clientIp = '192.0.2.10') {
   };
 }
 
-function mockedGemini(calls) {
+function mockedGroq(calls) {
   return async (url, options) => {
-    assert.equal(url, 'https://generativelanguage.googleapis.com/v1beta/interactions');
+    assert.equal(url, 'https://api.groq.com/openai/v1/chat/completions');
     calls.push(JSON.parse(options.body));
-    return new Response(JSON.stringify({ output_text: 'Resposta local simulada.' }), {
+    return new Response(JSON.stringify({ choices: [{ message: { role: 'assistant', content: 'Resposta local simulada.' } }] }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   };
 }
 
-test('adapta o JSON da Vercel, usa Gemini stateless e mantém resposta no-store', async () => {
+test('adapta o JSON da Vercel, usa Chat Completions Groq e mantém resposta no-store', async () => {
   const calls = [];
   const handler = createVercelChatHandler({
     getApiKey: () => 'not-a-real-test-key',
-    fetchImpl: mockedGemini(calls),
+    fetchImpl: mockedGroq(calls),
   });
 
   await withVercelLikeServer(handler, async (origin) => {
@@ -74,9 +74,9 @@ test('adapta o JSON da Vercel, usa Gemini stateless e mantém resposta no-store'
     assert.match(response.headers.get('cache-control') || '', /no-store/);
     assert.equal(data.reply, 'Resposta local simulada.');
     assert.equal(calls.length, 1);
-    assert.equal(calls[0].store, false);
-    assert.equal(calls[0].model, 'gemini-3.8-flash');
-    assert.equal(calls[0].input[0].content[0].text, validMessages[0].content);
+    assert.equal(calls[0].model, 'llama-3.1-8b-instant');
+    assert.equal(Object.hasOwn(calls[0], 'store'), false);
+    assert.equal(calls[0].messages[1].content, validMessages[0].content);
     assert.equal(Object.hasOwn(calls[0], 'tasks'), false);
   });
 });
@@ -85,7 +85,7 @@ test('mapeia o IP público encaminhado pela Vercel para o limite por IP', async 
   const calls = [];
   const handler = createVercelChatHandler({
     getApiKey: () => 'not-a-real-test-key',
-    fetchImpl: mockedGemini(calls),
+    fetchImpl: mockedGroq(calls),
     rateLimiter: createRateLimiter({ maxRequestsPerIp: 1, maxRequestsPerWindow: 10, maxRequestsPerDay: 10 }),
   });
 
@@ -103,11 +103,11 @@ test('mapeia o IP público encaminhado pela Vercel para o limite por IP', async 
   });
 });
 
-test('recusa origem cross-site, payload inválido e corpo grande sem chamar Gemini', async () => {
+test('recusa origem cross-site, payload inválido e corpo grande sem chamar Groq', async () => {
   const calls = [];
   const handler = createVercelChatHandler({
     getApiKey: () => 'not-a-real-test-key',
-    fetchImpl: mockedGemini(calls),
+    fetchImpl: mockedGroq(calls),
   });
 
   await withVercelLikeServer(handler, async (origin) => {

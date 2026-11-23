@@ -36,7 +36,7 @@
 - [x] A PWA não é um APK nativo. No Termux, o servidor precisa permanecer aberto para servir o app.
 - [x] Sem servidor de push, lembretes não têm garantia com app/navegador fechado ou suspenso.
 - [x] O backup manual é legível e não criptografado; deve ser guardado privadamente.
-- [x] O endpoint de chat publicado não exige login. Limites por IP/instância e validação de origem reduzem abuso, mas não são autenticação; chamadas distribuídas ainda podem consumir a cota gratuita do projeto Google. Os limites de processo reiniciam com as instâncias.
+- [x] O endpoint de chat publicado não exige login. Limites por IP/instância e validação de origem reduzem abuso, mas não são autenticação nem cota global; chamadas distribuídas ainda podem consumir os limites gratuitos da organização Groq. Os limites de processo reiniciam com as instâncias.
 
 ## Transições e interatividade solicitadas — concluído
 
@@ -44,16 +44,14 @@
 - [x] Conclusão de tarefas e hábitos e alterações de progresso devem receber feedback visual imediato, mantendo resposta acessível a teclado e toque.
 - [x] Todas as animações devem respeitar `prefers-reduced-motion`, sem rolagem suave ou movimento obrigatório quando a opção do sistema estiver ligada.
 
-## Chat opcional Gemini — concluído
+## Migração do chat para Groq
 
-- [x] Incluir um chat em português, acessível em desktop e celular, com botão Assistente, diálogo acessível, envio por botão/Enter, Shift+Enter para nova linha, estados de carregamento/resposta/erro e opção de limpar. A conversa existe apenas na sessão do navegador.
-- [x] Usar somente `gemini-3.8-flash` pela Gemini Interactions API no plano gratuito, sem configurar faturamento, sem fallback pago e com explicação quando a cota Google estiver indisponível; tratar HTTP 429 sem tentar outra rota paga. A faixa de uso efetiva depende da configuração do projeto Google vinculado à chave.
-- [x] Antes do primeiro envio, informar que somente o texto da conversa será transmitido ao Google; no nível gratuito, o Google pode usar esse conteúdo para melhorar produtos; não incentivar o envio de dados sensíveis. O usuário confirmou que aceita essas condições.
-- [x] Não anexar ou consultar automaticamente tarefas, objetivos, projetos, hábitos, Estudos, Diário, Finanças, backups ou outros registros locais do AXIS. A API recebe apenas o histórico curto digitado/gerado dentro do painel do chat.
-- [x] Solicitar `store:false` em cada Interactions API para não manter o histórico do chat no armazenamento server-side do Google; não persistir conversas no armazenamento local do AXIS.
-- [x] Guardar a chave `AXIS_GEMINI_API_KEY` somente como segredo em runtime do servidor. Nunca colocá-la no front-end, HTML, bundle estático, logs, `.env` versionado, Git ou ZIP do Termux.
-- [x] Validar método, JSON, papéis e limites de mensagem/histórico/tamanho/tempo no backend. Respostas usam `Cache-Control: no-store`; o servidor não registra prompts, saídas ou chaves; erros não expõem detalhes internos.
-- [x] Preservar armazenamento local e operação offline das demais áreas. O chat é opcional, depende de internet e só processa o conteúdo que a pessoa envia no chat.
-- [x] Configurar a publicação de `/api/chat` somente no backend server-side; o Preview e o servidor da produção usam a mesma lógica e erros compreensíveis, sem enviar a chave ao navegador.
-- [x] Atualizar o fluxo de Termux para receber a chave de modo interativo fora do ZIP, encaminhar `/api/chat` pelo mesmo módulo server-side e nunca incluí-la no pacote.
-- [x] Validar build TypeScript/híbrido, endpoint, payload stateless sem retenção, segredo ausente/errado e limites/429. Atualizar e testar o ZIP `AXIS-Termux.zip` e o guia após a integração.
+- [x] O chat opcional usa `llama-3.1-8b-instant` pela API Chat Completions da Groq, sem fallback para serviço pago; erro 429 interrompe a chamada com orientação de limite.
+- [x] A interface informa que o texto e o histórico curto são enviados à Groq e que a Groq declara não reter pedidos por padrão, mas pode armazená-los por até 30 dias em circunstâncias limitadas. Não se afirma `store:false` nem ZDR ativo.
+- [x] O backend transmite somente o histórico curto textual; tarefas, objetivos, projetos, hábitos, estudos, Diário, Finanças, backups e outros registros locais não são anexados ou consultados.
+- [x] A chave `GROQ_API_KEY` é lida somente no servidor/ambiente do Termux; nunca vai ao front-end, bundle, logs, Git ou ZIP.
+- [x] O endpoint mantém validação de origem, métodos, payload, limites de tamanho/histórico/tempo, cache `no-store`, erros minimizados e limites best-effort por IP, janela e dia.
+- [x] Testes automatizados com mocks (21/21), build TypeScript e inspeção de bundle concluídos sem chamadas reais à Groq; a bundle não contém `GROQ_API_KEY` nem `process.env`.
+- [x] ZIP Termux recriado com a interface Groq e sem `.env`, chave, `node_modules` ou referências ao provedor anterior.
+- [ ] Confirmar que a organização Groq vinculada à chave está no nível gratuito e sem faturamento habilitado; confirmar os limites efetivos da conta.
+- [ ] Configurar `GROQ_API_KEY` como segredo server-side na Vercel para Preview e Production. Não publicar até essas confirmações; o usuário não deve compartilhar a chave no chat.

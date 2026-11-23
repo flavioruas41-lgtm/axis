@@ -22,6 +22,6 @@ server.on('error', (error) => {
 
 server.listen(port, host, () => {
   console.log(`AXIS pronto em http://127.0.0.1:${port}`);
-  console.log('O chat Gemini exige AXIS_GEMINI_API_KEY no ambiente do Termux; a chave não é salva pelo AXIS.');
+  console.log('O chat opcional usa GROQ_API_KEY somente no ambiente do Termux; use uma conta Groq Free sem faturamento habilitado.');
   console.log('Mantenha o Termux aberto enquanto usa o servidor. Pare com Ctrl+C.');
 });
